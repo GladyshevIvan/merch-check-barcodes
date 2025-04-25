@@ -1,6 +1,7 @@
 from numpy import frombuffer, uint8
 import cv2
 import zxingcpp
+from app.core.convertations import convert_string_to_dict
 
 
 ALLOWED_IMG_TYPES = ('image/png', 'image/jpg', 'image/jpeg', 'image/webp')
@@ -43,3 +44,12 @@ async def detect_and_decode_barcode(image):
         return barcodes[0].text
 
     return None
+
+
+async def barcode_handler(image):
+
+    #Извлечение информации из штрихкода
+    barcode_data_string = await detect_and_decode_barcode(image)
+
+    #Возвращение словаря из информации о штрихкоде
+    return convert_string_to_dict(barcode_data_string)
