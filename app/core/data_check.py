@@ -10,7 +10,7 @@ def time_check(report):
 
     time_limit = int(os.getenv('HOURS_LIMIT')) #Лимит на время из .env
 
-    if report.t - report.date_and_time <= timedelta(hours=time_limit):
+    if abs(report.t - report.date_and_time) <= timedelta(hours=time_limit):
         return True
     raise Exception('Дата и время просрочены')
 
