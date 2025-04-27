@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 import pytz
 
 
@@ -15,16 +15,6 @@ def convert_str_to_datetime(date_str):
             return pytz.utc.localize(date_object)  #Установка UTC
         except ValueError:
             raise ValueError('Неверный формат даты и времени (ожидается YYYYMMDDTHHMMSS[Z])')
-
-
-def convert_str_to_tuple(data_string):
-    '''Преобразование data_string в Tuple[float, float]'''
-
-    try:
-        raw_gps_list = data_string[1:len(data_string) - 1].split(', ')
-        return tuple(map(float, raw_gps_list))
-    except:
-        raise Exception('Неверный gps')
 
 
 def convert_string_to_dict(barcode_data_string):

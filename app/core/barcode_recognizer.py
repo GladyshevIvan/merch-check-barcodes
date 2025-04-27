@@ -9,14 +9,11 @@ ALLOWED_IMG_TYPES = ('image/png', 'image/jpg', 'image/jpeg', 'image/webp')
 
 async def detect_and_decode_barcode(image):
     '''Определяет наличие штрихкода на изображении и извлекает из него информацию
-
     Принимает изображение в виде строки - пути к файлу или байтового объекта,
     обрабатывает его и пытается обнаружить штрихкод. Если штрихкод найден,
     возвращает его данные и тип.
-
     Args:
         image (str или bytes): изображение
-
     Returns:
         list из двух элементов:
             - barcode_text (str): данные из штрихкода
@@ -29,7 +26,7 @@ async def detect_and_decode_barcode(image):
     if image.content_type not in ALLOWED_IMG_TYPES:
         raise Exception('Wrong type')
 
-    #Преобразование UploadFiles в bytes
+    #Преобразование UploadFiles в bytes (Проверить тип: I/O или CPU и принять решение о целесообразности асинхрона)
     image = await image.read()
 
     #Преобразование bytes в cv2.typing.MatLike
