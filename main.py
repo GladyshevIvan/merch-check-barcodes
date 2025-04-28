@@ -1,20 +1,24 @@
-from fastapi import FastAPI, File, UploadFile, Body
+from fastapi import FastAPI, File, UploadFile, Body, Depends
 from uuid import UUID
 from app.core.convertations import convert_str_to_datetime
 from app.core.data_check import BarcodeDataCheck
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.database import get_async_session
+from app.repositories.check_review_repository import SqlAlchemyCheckReviewRepository
 
 
 app = FastAPI()
 
 
 @app.post('/send_report')
-async def march_check(
+async def merch_check(
                       barcode_img: UploadFile = File(...),
                       date_and_time: str = Body(...),
                       latitude: float = Body(...),
                       longitude: float = Body(...),
                       employee_id: UUID = Body(...),
-                      shop_id: UUID = Body(...)
+                      shop_id: UUID = Body(...),
+                      db: AsyncSession = Depends(get_async_session)
                       ):
     '''
     Срабатывает для конечной точки "/send_report", принимает параметры и после предварительной обработки - переработки даты из строки в нужный формат,
@@ -26,7 +30,7 @@ async def march_check(
     formatted_date_string = convert_str_to_datetime(date_and_time)
 
     #Класс для проверки штрихода на соответствие условиям
-    validation_obj = BarcodeDataCheck()
+    validation_obj = BarcodeDataCheck(SqlAlchemyCheckReviewRepository(session=db))
 
     #Вызов метода, который проверяет штрихкод на соответствие
     return await validation_obj.review(
