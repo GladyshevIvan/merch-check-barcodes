@@ -5,15 +5,13 @@ from app.config import settings
 from app.core.barcode_recognizer import barcode_handler
 from app.schemas.validation_models import Report
 from app.core.convertations import convert_str_to_datetime
-from app.repositories.check_review_repository import SqlAlchemyCheckReviewRepository
 
 
 class BarcodeDataCheck:
     '''Класс, представляющий anti-fraud систему для защиты от подлога'''
 
     def __init__(self, repository):
-        #Инициализируем репозиторий как None (или с заглушкой, если нужно)
-        self.repository = repository
+        self.repository = repository #Репозиторий, у которого будут вызываться методы для получения данных из Базы Данных
 
 
     @staticmethod
@@ -52,20 +50,22 @@ class BarcodeDataCheck:
         t_fn_i_dublicates = await self.repository.get_t_fn_i(t=report.t, fn=report.fn, i=report.i)
 
         #Проверка есть ли чек с такими же 'fp', 'fn', затем проверка на совпадение 't', 'fn' и 'i'
-        #Если чек найден, вылетает исключение
         if fp_fn_dublicates or t_fn_i_dublicates:
+            #Если чек найден, вылетает исключение
             raise Exception('Этот чек уже загружен в Базу Данных')
 
 
     async def add_check_to_db(self, report):
         '''Добавление чека в таблицу used_checks'''
 
-        print(self.repository, report)
         await self.repository.add_used_check(fp=report.fp, fn=report.fn, t=report.t, i=report.i)
 
 
     async def is_a_check_valid(self, report):
         '''Проверка информации из чека на достоверность'''
+
+        #Проверка на время
+        self.time_check(report)
 
         #Проверка чека на наличие в Базе Данных, а затем на расстояние
         # await asyncio.gather(
@@ -75,9 +75,6 @@ class BarcodeDataCheck:
 
         await self.check_dublicats(report)
         await self.distance_check(report)
-
-        #Проверка на время
-        self.time_check(report)
 
         #Вызов функции для добавления чека в Базу данных
         await self.add_check_to_db(report)
@@ -92,11 +89,12 @@ class BarcodeDataCheck:
             shop_id,
     ):
 
-        # Извлечение информации из штрихкода и возврат в виде словаря
-        barcode_data = await barcode_handler(barcode_img)
 
         try:
-            # Получение провалидированного объекта Pydantic модели Report
+            #Извлечение информации из штрихкода и возврат в виде словаря
+            barcode_data = await barcode_handler(barcode_img)
+
+            #Получение провалидированного объекта Pydantic модели Report
             report = Report(
                 date_and_time=date_and_time,
                 gps=gps,
@@ -110,7 +108,7 @@ class BarcodeDataCheck:
                 n=barcode_data['n'],
             )
 
-            # Проверка на подделку и актуальность
+            #Проверка на подделку и актуальность
             try:
                 await self.is_a_check_valid(report)
                 return 'Принято'

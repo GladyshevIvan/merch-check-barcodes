@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    '''Класс конфигурации'''
+
     model_config = SettingsConfigDict(
         env_file=find_dotenv(),
     )
@@ -21,6 +23,8 @@ class Settings(BaseSettings):
 
     @property
     def ASYNC_DATABASE_URL(self):
+        '''Строка подключения к Базе Данных'''
+
         return f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
 
 

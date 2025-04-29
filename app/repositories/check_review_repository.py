@@ -4,8 +4,10 @@ from app.db.models import Shops, UsedChecks
 
 
 class SqlAlchemyCheckReviewRepository:
+    '''Репозиторий для выполнения запросов, связанных с проверкой чеков, к Базе Данных'''
+
     def __init__(self, session: AsyncSession):
-        self.session = session
+        self.session = session #Асинхронная сессия, через которую происходит взаимодействие с Базой Данных
 
 
     async def get_shop_cords(self, shop_id, fn) -> Shops | None:

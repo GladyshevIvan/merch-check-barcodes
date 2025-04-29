@@ -17,7 +17,6 @@ from app.db.models import Shops, UsedChecks
 config = context.config
 
 #Установка параметров конфигурации, чтобы в alembic.ini получать доступ к базе данных
-
 config.set_main_option("sqlalchemy.url", settings.ASYNC_DATABASE_URL)
 
 # Interpret the config file for Python logging.
