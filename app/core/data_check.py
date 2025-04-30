@@ -5,13 +5,12 @@ from app.config import settings
 from app.core.barcode_recognizer import barcode_handler
 from app.schemas.validation_models import Report
 from app.core.convertations import convert_str_to_datetime
+from app.repositories.check_review_repository import SqlAlchemyCheckReviewRepository
+from app.db.database import async_session_maker
 
 
 class BarcodeDataCheck:
     '''Класс, представляющий anti-fraud систему для защиты от подлога'''
-
-    def __init__(self, repository):
-        self.repository = repository #Репозиторий, у которого будут вызываться методы для получения данных из Базы Данных
 
 
     @staticmethod
@@ -25,12 +24,17 @@ class BarcodeDataCheck:
         raise Exception('Дата и время просрочены')
 
 
-    async def distance_check(self, report):
+    @staticmethod
+    async def distance_check(report):
         '''Проверка на расстояние'''
 
         distance_limit = int(settings.DISTANCE_LIMIT)  #Лимит на дистанцию из .env
 
-        shop_db_data = await self.repository.get_shop_cords(shop_id=report.shop_id, fn=report.fn)
+        #Создание объекта репозитория с отдельной сессией для операций с Базой Данных
+        repository = SqlAlchemyCheckReviewRepository(async_session_maker())
+
+        #Вызов у репозитория метода для извлечения координат из Базы Данных
+        shop_db_data = await repository.get_shop_cords(shop_id=report.shop_id, fn=report.fn)
 
         if shop_db_data: #Если магазин с такими полями есть
             gps_from_db = (shop_db_data.latitude, shop_db_data.longitude) #Получение gps по этим ключам
@@ -43,11 +47,18 @@ class BarcodeDataCheck:
             raise Exception('Магазин не найден')
 
 
-    async def check_dublicats(self, report):
+    @staticmethod
+    async def check_dublicats(report):
         '''Проверка по 'fp', 'fn', а затем по 't', 'fn' и 'i' чек на наличие в Базе Данных'''
 
-        fp_fn_dublicates =  await self.repository.get_fp_fn(fp=report.fp, fn=report.fn,)
-        t_fn_i_dublicates = await self.repository.get_t_fn_i(t=report.t, fn=report.fn, i=report.i)
+        #Создание объектов репозитория с отдельной сессией для операций с Базой Данных
+        repository_fp_fn_check = SqlAlchemyCheckReviewRepository(async_session_maker())
+        repository_t_fn_i_check = SqlAlchemyCheckReviewRepository(async_session_maker())
+
+        fp_fn_dublicates, t_fn_i_dublicates = await asyncio.gather(
+                                                                    repository_fp_fn_check.get_fp_fn(fp=report.fp, fn=report.fn,),
+                                                                    repository_t_fn_i_check.get_t_fn_i(t=report.t, fn=report.fn, i=report.i)
+                                                                    )
 
         #Проверка есть ли чек с такими же 'fp', 'fn', затем проверка на совпадение 't', 'fn' и 'i'
         if fp_fn_dublicates or t_fn_i_dublicates:
@@ -55,10 +66,14 @@ class BarcodeDataCheck:
             raise Exception('Этот чек уже загружен в Базу Данных')
 
 
-    async def add_check_to_db(self, report):
+    @staticmethod
+    async def add_check_to_db(report):
         '''Добавление чека в таблицу used_checks'''
 
-        await self.repository.add_used_check(fp=report.fp, fn=report.fn, t=report.t, i=report.i)
+        #Создание объекта репозитория с отдельной сессией для операций с Базой Данных
+        repository = SqlAlchemyCheckReviewRepository(async_session_maker())
+
+        await repository.add_used_check(fp=report.fp, fn=report.fn, t=report.t, i=report.i)
 
 
     async def is_a_check_valid(self, report):
@@ -68,13 +83,10 @@ class BarcodeDataCheck:
         self.time_check(report)
 
         #Проверка чека на наличие в Базе Данных, а затем на расстояние
-        # await asyncio.gather(
-        #     self.check_dublicats(report),
-        #     self.distance_check(report)
-        # )
-
-        await self.check_dublicats(report)
-        await self.distance_check(report)
+        await asyncio.gather(
+            self.check_dublicats(report),
+            self.distance_check(report)
+        )
 
         #Вызов функции для добавления чека в Базу данных
         await self.add_check_to_db(report)
