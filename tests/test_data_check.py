@@ -2,7 +2,6 @@ from datetime import datetime
 from uuid import UUID
 import pytest
 import pytz
-from unittest.mock import patch
 from app.config import settings
 from app.core.data_check import BarcodeDataCheck
 
@@ -97,35 +96,44 @@ class MockUsedChecksModel:
         self.i = i
         self.t = t
 
-
 class MockSqlAlchemyCheckReviewRepository:
     '''Псевдорепозиторий SqlAlchemyCheckReviewRepository'''
 
     #Псевдотаблица Shops из Базы Данных
-    MOCK_SHOP = (
-        MockShopsModel(shop_id=UUID('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3'), fn='9999078900004658', latitude=64.527603, longitude=40.574157),
+    MOCK_SHOP =(
+        MockShopsModel(
+            shop_id=UUID('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3'),
+            fn='9999078900004658',
+            latitude=64.527603,
+            longitude=40.574157
+        ),
     )
 
     #Псевдотаблица UsedChecks из Базы Данных
     MOCK_USED_CHECKS = (
-        MockUsedChecksModel(t=pytz.utc.localize(datetime(2025, 4, 23, 20, 12, 2)), i=100, fn='1999078900004658', fp=2256047510)
+        MockUsedChecksModel(
+            t=pytz.utc.localize(datetime(2025, 4, 23, 20, 12, 2)),
+            i=100,
+            fn='1999078900004658',
+            fp=2256047511
+        ),
     )
 
-    async def mock_get_shop_cords(self, shop_id, fn):
+    async def get_shop_cords(self, shop_id, fn):
         '''Метод, который подменит get_shop_cords в SqlAlchemyCheckReviewRepository'''
 
         for item in self.MOCK_SHOP:
             if item.shop_id == shop_id and item.fn == fn:
                 return item
 
-    async def mock_get_fp_fn(self, fp, fn):
+    async def get_fp_fn(self, fp, fn):
         '''Метод, который подменит get_fp_fn в SqlAlchemyCheckReviewRepository'''
 
         for item in self.MOCK_USED_CHECKS:
             if item.fp == fp and item.fn == fn:
                 return item
 
-    async def mock_get_t_fn_i(self, t, fn, i):
+    async def get_t_fn_i(self, t, fn, i):
         '''Метод, который подменит get_t_fn_i в SqlAlchemyCheckReviewRepository'''
 
         for item in self.MOCK_USED_CHECKS:
@@ -138,16 +146,41 @@ class MockSqlAlchemyCheckReviewRepository:
 @pytest.mark.parametrize(
     'report, expected_result',
     [
-        (MockReport(gps=(64.527603, 40.574157), shop_id=UUID('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3'), fn='9999078900004658'), True),
-        (MockReport(gps=(84.527603, 40.574157), shop_id=UUID('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3'), fn='9999078900004658'), pytest.raises(Exception)),
-        (MockReport(gps=(84.527603, 40.574157), shop_id=UUID('F10F6CAF-5A98-426C-80D5-281A5D6FF0B9'), fn='9999078900004658'), pytest.raises(Exception))
+        (
+            MockReport(
+                gps=(64.527603, 40.574157),
+                shop_id=UUID('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3'),
+                fn='9999078900004658'),
+            True
+        ),
+        (
+            MockReport(
+                gps=(84.527603, 40.574157),
+                shop_id=UUID('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3'),
+                fn='9999078900004658'),
+            pytest.raises(Exception)
+        ),
+        (
+            MockReport(
+                gps=(84.527603, 40.574157),
+                shop_id=UUID('F10F6CAF-5A98-426C-80D5-281A5D6FF0B9'),
+                fn='9999078900004658'
+            ),
+            pytest.raises(Exception)
+        )
     ],
 )
 
 
-@patch('app.repositories.check_review_repository.SqlAlchemyCheckReviewRepository', new=MockSqlAlchemyCheckReviewRepository)
-async def test_distance_check(report, expected_result):
-    '''Проврка на дистанцию с мокированием Базы Данных'''
+@pytest.mark.asyncio
+async def test_distance_check(mocker, report, expected_result):
+    '''Проврка на дистанцию с мокированием Базы Данных с использованием фикстуры mocker для подмены метода на мокированный'''
+
+    #Создание экземпляра мокового репозитория
+    mock_repo = MockSqlAlchemyCheckReviewRepository()
+
+    #Мокирование метода get_shop_cords из SqlAlchemyCheckReviewRepository на методы MockSqlAlchemyCheckReviewRepository
+    mocker.patch('app.repositories.check_review_repository.SqlAlchemyCheckReviewRepository.get_shop_cords', new=mock_repo.get_shop_cords)
 
     if isinstance(expected_result, type(pytest.raises(ValueError))):
         with expected_result:
@@ -162,17 +195,49 @@ async def test_distance_check(report, expected_result):
 @pytest.mark.parametrize(
     'report, expected_result',
     [
-        (MockReport(t=pytz.utc.localize(datetime(2025, 4, 23, 20, 12, 2)), i=171, fn='9999078900004658', fp=2256047510), True),
-        (MockReport(t=pytz.utc.localize(datetime(2025, 4, 23, 20, 12, 2)), i=100, fn='1999078900004658', fp=2256047510), True)
+        (
+            MockReport(
+                t=pytz.utc.localize(datetime(2025, 4, 23, 20, 12, 2)),
+                i=171,
+                fn='9999078900004658',
+                fp=2256047510
+            ),
+            True
+        ),
+        (
+            MockReport(
+                t=pytz.utc.localize(datetime(2025, 4, 23, 20, 12, 2)),
+                i=100,
+                fn='1999078900004658',
+                fp=2256047510
+            ),
+            pytest.raises(Exception)
+        ),
+        (
+            MockReport(
+                t=pytz.utc.localize(datetime(2024, 4, 23, 20, 12, 2)),
+                i=101,
+                fn='1999078900004658',
+                fp=2256047511
+            ),
+            pytest.raises(Exception)
+        )
     ],
 )
 
 
-@patch('app.repositories.check_review_repository.SqlAlchemyCheckReviewRepository', new=MockSqlAlchemyCheckReviewRepository)
-async def test_check_dublicats(report, expected_result):
-    '''Проврка на дубликаты с мокированием Базы Данных'''
+@pytest.mark.asyncio
+async def test_check_dublicats(mocker, report, expected_result):
+    '''Проврка на дубликаты с мокированием Базы Данных с использованием фикстуры mocker для подмены методов на мокированный'''
 
-    if isinstance(expected_result, type(pytest.raises(ValueError))):
+    #Создание экземпляра мокового репозитория
+    mock_repo = MockSqlAlchemyCheckReviewRepository()
+
+    #Мокирование методов get_fp_fn и get_t_fn_i из SqlAlchemyCheckReviewRepository на методы MockSqlAlchemyCheckReviewRepository
+    mocker.patch('app.repositories.check_review_repository.SqlAlchemyCheckReviewRepository.get_fp_fn', new=mock_repo.get_fp_fn)
+    mocker.patch('app.repositories.check_review_repository.SqlAlchemyCheckReviewRepository.get_t_fn_i', new=mock_repo.get_t_fn_i)
+
+    if isinstance(expected_result, type(pytest.raises(Exception))):
         with expected_result:
             await BarcodeDataCheck.check_dublicats(report)
     else:
