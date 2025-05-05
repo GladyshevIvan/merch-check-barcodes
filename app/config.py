@@ -1,4 +1,5 @@
 from dotenv import find_dotenv
+import redis
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,12 +10,17 @@ class Settings(BaseSettings):
         env_file=find_dotenv(),
     )
 
-    #Настройки Базы данных
+    #Настройки PostgreSQL
     DB_HOST: str
     DB_PORT: str
     DB_USER: str
     DB_PASSWORD: str
     DB_NAME: str
+
+    #Настройки Redis
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_DB: int
 
     #Переменные из .env, которые понадобятся при проверке
     HOURS_LIMIT: int
@@ -29,3 +35,15 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+#Асинхронная функция для создания Redis-клиента
+async def create_redis_client():
+    '''Создание асинхронного Redis-клиента'''
+
+    return redis.asyncio.Redis(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        db=settings.REDIS_DB,
+        decode_responses=False
+    )
