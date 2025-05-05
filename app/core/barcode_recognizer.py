@@ -24,7 +24,7 @@ async def detect_and_decode_barcode(image):
 
     #Проверка является ли файл изображением:
     if image.content_type not in ALLOWED_IMG_TYPES:
-        raise Exception('Wrong type')
+        raise Exception('Неправильный тип')
 
     #Преобразование UploadFiles в bytes (Проверить тип: I/O или CPU и принять решение о целесообразности асинхрона)
     image = await image.read()

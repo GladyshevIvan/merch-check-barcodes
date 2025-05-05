@@ -2,6 +2,8 @@ __pycache__/
 *.py[co]
 *$py.class
 
+pytest_cache/cor
+
 *.so
 
 .Python

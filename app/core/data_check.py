@@ -65,6 +65,9 @@ class BarcodeDataCheck:
             #Если чек найден, вылетает исключение
             raise Exception('Этот чек уже загружен в Базу Данных')
 
+        #Если чека нет в Базе Данных
+        return True
+
 
     @staticmethod
     async def add_check_to_db(report):
