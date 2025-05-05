@@ -7,7 +7,7 @@ from app.config import create_redis_client
 
 
 def redis_wrapper(func):
-    '''Асинхронный декоратор для '''
+    '''Асинхронный декоратор для Redis-кеширования функций с запросами к Базе Данных'''
 
     @wraps(func)
     async def wrapper(*args, **kwargs):
