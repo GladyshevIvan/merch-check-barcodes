@@ -22,6 +22,7 @@ test_files = [
 ]
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     'image_path, expected_result',
     test_files

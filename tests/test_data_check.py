@@ -64,8 +64,6 @@ class MockReport:
         ),
     ]
 )
-
-
 def test_time_check(report, expected_result):
     '''Проверка на время'''
 
@@ -170,9 +168,6 @@ class MockSqlAlchemyCheckReviewRepository:
         )
     ],
 )
-
-
-@pytest.mark.asyncio
 async def test_distance_check(mocker, report, expected_result):
     '''Проврка на дистанцию с мокированием Базы Данных с использованием фикстуры mocker для подмены метода на мокированный'''
 
@@ -224,9 +219,6 @@ async def test_distance_check(mocker, report, expected_result):
         )
     ],
 )
-
-
-@pytest.mark.asyncio
 async def test_check_dublicats(mocker, report, expected_result):
     '''Проврка на дубликаты с мокированием Базы Данных с использованием фикстуры mocker для подмены методов на мокированный'''
 

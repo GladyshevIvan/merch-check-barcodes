@@ -18,8 +18,6 @@ from app.config import settings
         ('', pytest.raises(ValueError))
     ]
 )
-
-
 def test_convert_str_to_datetime(date_str, expected_result):
     '''Проврка конвертации строки с датой в datetime-объект с часовым поясом'''
 
@@ -40,8 +38,6 @@ def test_convert_str_to_datetime(date_str, expected_result):
         ('', pytest.raises(Exception))
     ]
 )
-
-
 def test_convert_barcode_data_string(barcode_data_string, expected_result):
     '''Проврка конвертации строки с датой в словарь'''
 
