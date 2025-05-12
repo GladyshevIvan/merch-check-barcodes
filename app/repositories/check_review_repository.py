@@ -2,7 +2,7 @@ import pickle
 from functools import wraps
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.db.models import Shops, UsedChecks
+from app.db.models import Shops, UsedChecks, CompletedTasks
 from app.config import create_redis_client
 
 
@@ -70,4 +70,12 @@ class SqlAlchemyCheckReviewRepository:
 
         new_check = UsedChecks(fp=fp, fn=fn, t=t, i=i)
         self.session.add(new_check)
+        await self.session.commit()
+
+
+    async def add_completed_task(self, employee_id, shop_id, date_and_time):
+        '''Добавление записи о выполненной работе в Базу Данных'''
+
+        new_task = CompletedTasks(employee_id=employee_id, shop_id=shop_id, date_and_time=date_and_time)
+        self.session.add(new_task)
         await self.session.commit()

@@ -83,6 +83,16 @@ class BarcodeDataCheck:
 
             await repository.add_used_check(fp=report.fp, fn=report.fn, t=report.t, i=report.i)
 
+    @staticmethod
+    async def add_task_to_db(report):
+        '''Добавление в Базу Данных записи о том, что сотрудник выполнил задачу для магазина с shop_id такого-то числа'''
+
+        async with async_session_maker() as session:
+            # Создание объекта репозитория с отдельной сессией для операций с Базой Данных
+            repository = SqlAlchemyCheckReviewRepository(async_session_maker())
+
+            await repository.add_completed_task(employee_id=report.employee_id, shop_id=report.shop_id, date_and_time=report.date_and_time)
+
 
     async def is_a_check_valid(self, report):
         '''Проверка информации из чека на достоверность'''
@@ -98,6 +108,9 @@ class BarcodeDataCheck:
 
         #Вызов функции для добавления чека в Базу данных
         await self.add_check_to_db(report)
+
+        #Вызов функции для добавления записи о выполненной работе в Базу Данных
+        await self.add_task_to_db(report)
 
 
     async def review(
