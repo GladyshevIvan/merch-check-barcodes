@@ -41,7 +41,7 @@ class UsedChecks(Base):
 
 
 class CompletedTasks(Base):
-    '''Таблица с использованными чеками'''
+    '''Таблица с засчитанной работой'''
 
     __tablename__ = 'completed_tasks'
 

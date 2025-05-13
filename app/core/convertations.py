@@ -4,8 +4,21 @@ import pytz
 from app.config import settings
 
 
-def convert_str_to_datetime(date_str):
-    '''Преобразование строки в дату'''
+def convert_str_to_datetime(date_str: str) -> datetime:
+    '''
+    Преобразование строку в дату
+
+    Если у строки на конце 'Z' - ей добавляется часовой пояс UTC
+    Если 'Z' нет, происходит проверка, указан ли пояс. Если +HHMM или -HHMM нет, тогда указывается пояс из .env
+
+    Args:
+        date_str (str): Строка с датой в формате ISO 8601
+    Returns:
+        datetime: Дата, время и часовой пояс
+    Raises:
+        ValueError: Если переданная строка не соответствует форматам:
+            YYYYMMDDTHHMMSS+HHMM, YYYYMMDDTHHMMSS-HHMM или YYYYMMDDTHHMMSS[Z]
+    '''
 
     if date_str.endswith('Z'):
         #Попытка распарсить строку с 'Z'
@@ -14,7 +27,7 @@ def convert_str_to_datetime(date_str):
         return localized_datetime
     else:
         try:
-            #Если нет Z, проверка, указан ли поясесли +HHMM или -HHMM нет, тогда указывается пояс из .env
+            #Если нет Z, проверка, указан ли пояс. Если +HHMM или -HHMM нет, тогда указывается пояс из .env
             for sign in ('+', '-'):
                 if sign in date_str:
                     date_part, timezone_part = date_str.split(sign)
@@ -34,7 +47,7 @@ def convert_str_to_datetime(date_str):
 
             #Если пояс не указан
             load_dotenv()
-            time_zone = pytz.timezone(settings.TIME_ZONE) # Загрузка часового пояса из .env
+            time_zone = pytz.timezone(settings.TIME_ZONE) #Загрузка часового пояса из .env
             date_object = datetime.strptime(date_str, '%Y%m%dT%H%M%S')
             localized_datetime = time_zone.localize(date_object)
             return localized_datetime
@@ -43,8 +56,19 @@ def convert_str_to_datetime(date_str):
             raise ValueError('Неверный формат даты и времени (ожидается YYYYMMDDTHHMMSS+HHMM , YYYYMMDDTHHMMSS-HHMM или YYYYMMDDTHHMMSS[Z])')
 
 
-def convert_string_to_dict(barcode_data_string):
-    '''Преобразование строки из штрихкода в словарь'''
+def convert_string_to_dict(barcode_data_string: str) -> dict:
+    '''
+    Преобразует строку в словарь
+
+    Разбивает строку на пары ключ-значение и создает словарь
+
+    Args:
+        barcode_data_string (str): Строка, содержащая данные штрихкода в формате 'key1=value1&key2=value2...'
+    Returns:
+        dict: Словарь, содержащий данные штрихкода, где ключи и значения извлечены из строки
+    Raises:
+        Exception: Если переданная строка пуста
+    '''
 
     if barcode_data_string:
         barcode_data = {}

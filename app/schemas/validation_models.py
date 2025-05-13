@@ -6,6 +6,8 @@ from uuid import UUID
 
 
 class Report(BaseModel):
+    '''Pydantic-модель для автоматической валидации данных из запроса и данных, извлеченных из чека'''
+
     date_and_time: datetime
     gps: Tuple[float, float]
     employee_id: UUID
