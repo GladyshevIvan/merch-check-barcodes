@@ -20,6 +20,7 @@ class Shops(Base):
         CheckConstraint('fn ~ \'^[0-9]{16}$\'', name='fn_length_constraint'),  # Ограничение для fn: 16 цифр
     )
 
+
 class UsedChecks(Base):
     '''Таблица с использованными чеками'''
 
@@ -37,3 +38,13 @@ class UsedChecks(Base):
         CheckConstraint('fn ~ \'^[0-9]{16}$\'', name='fn_length_constraint'),  #Ограничение для fn: 16 цифр
         CheckConstraint('i BETWEEN 0 AND 9999999999', name='i_length_constraint'),  #Ограничение для i: максимум 10 цифр
     )
+
+
+class CompletedTasks(Base):
+    '''Таблица с засчитанной работой'''
+
+    __tablename__ = 'completed_tasks'
+
+    employee_id: Mapped[UUID] = mapped_column(primary_key=True)
+    shop_id: Mapped[UUID] = mapped_column(primary_key=True)
+    date_and_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
