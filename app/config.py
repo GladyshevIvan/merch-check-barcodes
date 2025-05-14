@@ -1,14 +1,9 @@
-from dotenv import find_dotenv
 import redis
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     '''Класс конфигурации'''
-
-    model_config = SettingsConfigDict(
-        env_file=find_dotenv(),
-    )
 
     #Настройки PostgreSQL
     DB_HOST: str
@@ -22,7 +17,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int
     REDIS_DB: int
 
-    #Переменные из .env, которые понадобятся при проверке
+    #Переменные, которые понадобятся при проверке
     HOURS_LIMIT: int
     DISTANCE_LIMIT: int
     TIME_ZONE: str

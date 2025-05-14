@@ -31,7 +31,7 @@ class BarcodeDataCheck:
             Exception: Если разница во времени превышает лимит, указанный в HOURS_LIMIT из .env
         '''
 
-        time_limit = int(settings.HOURS_LIMIT) #Лимит на время из .env
+        time_limit = int(settings.HOURS_LIMIT) #Лимит на время из переменной окружения HOURS_LIMIT
 
         if abs(report.t - report.date_and_time) <= timedelta(hours=time_limit):
             return True
@@ -55,7 +55,7 @@ class BarcodeDataCheck:
             Exception: Если магазин не найден в Базе Данных
         '''
 
-        distance_limit = int(settings.DISTANCE_LIMIT)  #Лимит на дистанцию из .env
+        distance_limit = int(settings.DISTANCE_LIMIT)  #Лимит на дистанцию из переменной окружения DISTANCE_LIMIT
 
         async with async_session_maker() as session:
 

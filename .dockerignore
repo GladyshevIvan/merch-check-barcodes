@@ -70,12 +70,10 @@ env/
 
 *.log
 *.tmp
-*.txt
 *.swp
 
 .DS_Store
 *.tmp
-*.txt
 *.swp
 
 .DS_Store
