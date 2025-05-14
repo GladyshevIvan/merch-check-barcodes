@@ -91,108 +91,251 @@ If all checks pass, the receipt is added to the database.
 - Добавлены модульные тесты (Pytest);
 - Для модульного тестирования функций, где происходит обращение к Базе Данных, используются моки;
 - Добавлено нагрузочное тестирование с помощью Locust;
+- Использован Docker для контейнеризации;
+- Применен Docker-compose - инструмент для запуска многоконтейнерных приложений. 
 
 
 <!--Space-->
 
-- Implemented a FastAPI endpoint to receive POST requests with data.
-- Added a barcode processor to extract information from barcodes.
-- Utilized Pydantic models for data validation.
-- Implemented time deviation check.
-- Implemented GPS coordinate deviation check.
-- Implemented duplicate receipt check in the database.
-- Applied the Repository pattern for database interaction.
-- PostgreSQL was selected as the database management system (DBMS).
-- SQLAlchemy was used as the Object-Relational Mapper (ORM).
-- Alembic was used for database schema migrations.
-- Implemented Redis caching for store GPS coordinate queries to the database.
-- Added unit tests (Pytest).
-- Used mocks for unit testing of functions that interact with the database.
-- Performed load testing with Locust.
+- Implemented a FastAPI endpoint to receive POST requests with data;
+- Added a barcode processor to extract information from barcodes;
+- Utilized Pydantic models for data validation;
+- Implemented time deviation check;
+- Implemented GPS coordinate deviation check;
+- Implemented duplicate receipt check in the database;
+- Applied the Repository pattern for database interaction;
+- PostgreSQL was selected as the database management system (DBMS);
+- SQLAlchemy was used as the Object-Relational Mapper (ORM);
+- Alembic was used for database schema migrations;
+- Implemented Redis caching for store GPS coordinate queries to the database;
+- Added unit tests (Pytest);
+- Used mocks for unit testing of functions that interact with the database;
+- Performed load testing with Locust;
+- Used Docker for containerization;
+- Implemented Docker Compose for multi-container application orchestration.
 
 ## Подготовка проекта (Project preparation)
 
-1. **Предварительная установка**
-   * Установите PostgreSQL
-   * Установите Redis
+1. **Установите [Docker](https://www.docker.com/)**
 
-2. **Создайте Базу Данных в PostgreSQL**
 
-3. **Создайте в корне проекта файл ```.env```**
+2. **Предварительная сборка**
+
+   * Клонируйте репозиторий:
+
+    ```bash
+    git clone https://github.com/GladyshevIvan/merch-check-barcodes.git
+    cd <имя_папки_проекта>
+    ```
+
+   * Запустите сборку образа с помощью Docker Compose:
+
+    ```bash
+    docker-compose build
+    ```
+
+3. **Развертывание проекта**
+   * Если развертывание происходит на другой машине, проверьте, установлен ли на ней [Docker](https://www.docker.com/) и имеется ли доступ к созданным контейнерам
+   * В новой папке создайте новый `docker-compose.yml`, который будет использоваться для развертывания приложения
+   * Пропишите в нем переменные окружения для конфигурации приложения, PostgreSQL и Redis:
+     #### FastAPI приложение: 
+     * `DB_HOST`: Хост базы данных PostgreSQL
+     * `DB_PORT`: Порт базы данных PostgreSQL
+     * `DB_USER`: Имя пользователя PostgreSQL
+     * `DB_PASSWORD`: Пароль пользователя PostgreSQL
+     * `DB_NAME`: Имя базы данных PostgreSQL
+     * `REDIS_HOST`: Хост Redis
+     * `REDIS_PORT`: Порт Redis
+     * `REDIS_DB`: Номер базы данных Redis
+     * `HOURS_LIMIT`: Максимальное количество часов
+     * `DISTANCE_LIMIT`: Максимальное расстояние
+     * `TIME_ZONE`:  Часовой пояс приложения
+     #### PostgreSQL:
+     * `POSTGRES_USER`: Имя пользователя PostgreSQL
+     * `POSTGRES_PASSWORD`: Пароль пользователя PostgreSQL
+     * `POSTGRES_DB`: Имя базы данных PostgreSQL
+
+   * Полученные контейнеры разверните с помощью:
+      
+      ```bash
+      docker-compose up -d
+     ```
+
+4. **Примените миграции Alembic**
+
+   ```bash
+   docker exec -it fastapi_app alembic upgrade head
    ```
-   #Лимиты для проверки
-   HOURS_LIMIT=2
-   DISTANCE_LIMIT=2
+   * Эта команда выполнит миграции Базы Данных, определенные в проекте, для создания необходимых таблиц и схем в PostgreSQL   
 
-   #Добавить пояс и использовать его при конвертации, например 'Europe/Moscow'
-   TIME_ZONE=UTC
-   
-   #Настройки Базы Данных PostgreSQL
-   DB_HOST="your_host"
-   DB_PORT=5432
-   DB_USER="postgres"
-   DB_PASSWORD="password"
-   DB_NAME="db_name"
-   
-   #Настройки Базы Данных Redis
-   REDIS_HOST="your_host"
-   REDIS_PORT=6379
-   REDIS_DB="db_number"
-   ```
-   
-   - Установите лимиты для времени и дистанции;
-   - Добавьте временной пояс;
-   - Добавьте настройки для PostgreSQL;
-   - Добавьте настройки для Redis.
 
-4. **Предварительная сборка**
-   * Установите необходимые Python-пакеты, выполнив следующую команду в консоли
+5. **При желании добавьте записи в Базу Данных**
+   * Подключитесь к базе данных PostgreSQL внутри контейнера `fastapi_app`:
 
+        ```bash
+        docker exec -it fastapi_app psql -h postgres -U postgres -d appdb
+        ```
+     
+   * Выполните SQL-запросы для добавления данных. Например, информации о магазине:
+
+        ```sql
+        INSERT INTO shops (id, shop_code, latitude, longitude) VALUES ('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3', '9999078900004658', 64.527603, 40.574157);
+        ```
+
+   * Для проверки содержимого таблицы `shops` используйте:
+
+        ```sql
+        SELECT * FROM shops;
+        ```
+     
+6. **При желании проверьте кэшируются ли результаты запросов к Базе Данных в Redis**
+   * После отправки успешного запроса (например, через Postman) выполните:
+
+        ```bash
+        docker exec -it redis redis-cli -h redis -p 6379
+        ```
+
+   * В `redis-cli` выполните:
+        ```
+        KEYS *
+        ```
+
+   * Если кэширование работает, должен высветиться ключ, связанный с запросом.
+     
+
+7. **Отправка запросов**
+   * Для отправки запросов, можно воспользоваться [Postman](https://www.postman.com/downloads/)
+   * Создайте новый запрос `POST`.
+   * Введите URL: `http://localhost:8000/send_report` (или URL вашего POST эндпоинта)
+   * В разделе `Body`, выберите `form-data`
+   * Введите парметры:
+     - barcode_img - Изображение штрихкода
+     - date_and_time - Дата и время отчета в формате ISO 8601
+     - latitude - Широта местоположения, откуда был отправлен отчет
+     - longitude - Долгота местоположения, откуда был отправлен отчет
+     - employee_id - UUID мерчендайзера, отправляющего отчет
+     - shop_id - UUID магазина, в котором выполнил работу мерчендайзер
+   * Нажмите `Send`
+   * Если запрос выполнится успешно: высветится "Принято", иначе "Не принято"
+
+
+8. **Остановка приложения**
+
+   ```bash
+   docker-compose down
    ```
-   pip install -r requirements.txt
-   ```
-   
+
 
 <!--Space-->
 
 
-1. **Prerequisites**
-   * Install PostgreSQL
-   * Install Redis
+1. **Install [Docker](https://www.docker.com/)**
 
-2. **Create a Database in PostgreSQL**
 
-3. **Create a ```.env``` file in your project directory**
-   ```
-   #Limits for validation
-   HOURS_LIMIT=2
-   DISTANCE_LIMIT=2
-   
-   #Add time zone and use it during conversion, for example 'Europe/Moscow'
-   TIME_ZONE=UTC
-   
-   #PostgreSQL Database Settings
-   DB_HOST="your_host"
-   DB_PORT=5432
-   DB_USER="postgres"
-   DB_PASSWORD="password"
-   DB_NAME="db_name"
-   
-   #Redis Database Settings
-   REDIS_HOST="your_host"
-   REDIS_PORT=6379
-   REDIS_DB="db_number"
-   ```
-   
-   - Set the limits for time and distance.
-   - Add the timezone.
-   - Add the settings for PostgreSQL.
-   - Add the settings for Redis.
+2. **Pre-build Setup**
 
-4. **Initial Setup**
-   * Install the necessary Python packages by running the following command in the console:
+   * Clone the repository:
+
+    ```bash
+    git clone https://github.com/GladyshevIvan/merch-check-barcodes.git
+    cd <project_folder_name>
+    ```
+
+   * Build the image using Docker Compose:
+
+    ```bash
+    docker-compose build
+    ```
+
+3. **Project Deployment**
+   * f deploying on a different machine, ensure [Docker](https://www.docker.com/) is installed and the created containers are accessible.
+   * In a new folder, create a `docker-compose.yml` file for deploying the application.
+   * Configure the environment variables for the application, PostgreSQL, and Redis:
+     #### FastAPI application: 
+     * `DB_HOST`: PostgreSQL database host
+     * `DB_PORT`: PostgreSQL database port
+     * `DB_USER`: PostgreSQL username
+     * `DB_PASSWORD`: PostgreSQL password
+     * `DB_NAME`: PostgreSQL database name
+     * `REDIS_HOST`: Redis host
+     * `REDIS_PORT`: Redis port
+     * `REDIS_DB`: Redis database number
+     * `HOURS_LIMIT`: Maximum allowed hours
+     * `DISTANCE_LIMIT`: Maximum allowed distance
+     * `TIME_ZONE`: Application timezone
+     #### PostgreSQL:
+     * `POSTGRES_USER`: PostgreSQL username
+     * `POSTGRES_PASSWORD`: PostgreSQL password
+     * `POSTGRES_DB`: PostgreSQL database name
+
+   * Deploy the containers using:
+      
+      ```bash
+      docker-compose up -d
+     ```
+
+4. **Apply Alembic Migrations**
+
+   ```bash
+   docker exec -it fastapi_app alembic upgrade head
    ```
-   pip install -r requirements.txt
+   * This command will execute the database migrations defined in the project to create the necessary tables and schemas in PostgreSQL   
+
+
+5. **Optionally Add Data to the Database**
+   * Connect to the PostgreSQL database inside the `fastapi_app` container:
+
+        ```bash
+        docker exec -it fastapi_app psql -h postgres -U postgres -d appdb
+        ```
+     
+   * Execute SQL queries to insert data. For example, to add store information:
+
+        ```sql
+        INSERT INTO shops (id, shop_code, latitude, longitude) VALUES ('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3', '9999078900004658', 64.527603, 40.574157);
+        ```
+
+   * To check the contents of the `shops` table, use:
+
+        ```sql
+        SELECT * FROM shops;
+        ```
+     
+6. **Optionally Check if Database Query Results Are Cached in Redis**
+   * After making a successful request (e.g., via Postman), run:
+
+        ```bash
+        docker exec -it redis redis-cli -h redis -p 6379
+        ```
+
+   * В `redis-cli` выполните:
+        ```
+        KEYS *
+        ```
+
+   * If caching is working, a key related to the request should appear.
+     
+
+7. **Sending Requests**
+   * To send requests, you can use [Postman](https://www.postman.com/downloads/).
+   * Create a new `POST` request.
+   * Enter the URL: http://localhost:8000/send_report (or your POST endpoint URL).
+   * In the `Body` section, select `form-data`.
+   * Enter the parameters:
+     - barcode_img – Barcode image
+     - date_and_time – Report date and time in ISO 8601 format
+     - latitude – Latitude of the location from which the report was sent
+     - longitude – Longitude of the location from which the report was sent
+     - employee_id – UUID of the merchandiser submitting the report
+     - shop_id – UUID of the store where the merchandiser performed the work
+   * Click `Send`.
+   * If the request is successful, the response will be "Accepted"; otherwise, it will be "Rejected".
+
+
+8. **Stopping the Application**
+
+   ```bash
+   docker-compose down
    ```
    
 
@@ -206,3 +349,5 @@ If all checks pass, the receipt is added to the database.
 - **Redis**
 - **Pytest**
 - **Locust**
+- **Docker**
+- **Docker-compose**

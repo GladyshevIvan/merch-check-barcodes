@@ -9,7 +9,8 @@ def convert_str_to_datetime(date_str: str) -> datetime:
     Преобразование строку в дату
 
     Если у строки на конце 'Z' - ей добавляется часовой пояс UTC
-    Если 'Z' нет, происходит проверка, указан ли пояс. Если +HHMM или -HHMM нет, тогда указывается пояс из .env
+    Если 'Z' нет, происходит проверка, указан ли пояс. Если +HHMM или -HHMM нет,
+    тогда указывается пояс из переменной окружения TIME_ZONE
 
     Args:
         date_str (str): Строка с датой в формате ISO 8601
@@ -27,7 +28,7 @@ def convert_str_to_datetime(date_str: str) -> datetime:
         return localized_datetime
     else:
         try:
-            #Если нет Z, проверка, указан ли пояс. Если +HHMM или -HHMM нет, тогда указывается пояс из .env
+            #Если нет Z, проверка, указан ли пояс. Если +HHMM или -HHMM нет, тогда указывается пояс из переменной окружения TIME_ZONE
             for sign in ('+', '-'):
                 if sign in date_str:
                     date_part, timezone_part = date_str.split(sign)
@@ -47,7 +48,7 @@ def convert_str_to_datetime(date_str: str) -> datetime:
 
             #Если пояс не указан
             load_dotenv()
-            time_zone = pytz.timezone(settings.TIME_ZONE) #Загрузка часового пояса из .env
+            time_zone = pytz.timezone(settings.TIME_ZONE) #Загрузка часового пояса из переменной окружения TIME_ZONE
             date_object = datetime.strptime(date_str, '%Y%m%dT%H%M%S')
             localized_datetime = time_zone.localize(date_object)
             return localized_datetime

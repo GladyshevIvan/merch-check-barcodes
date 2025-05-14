@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: psgr
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dbnet
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+
+  app:
+    build: .
+    image: fastapi_app
+    container_name: fastapi_app
+    restart: always
+    command: "uvicorn main:app --host 0.0.0.0 --port 8000" #Запуск uvicorn
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: ${REDIS_DB}
+      HOURS_LIMIT: ${HOURS_LIMIT}
+      DISTANCE_LIMIT: ${DISTANCE_LIMIT}
+      TIME_ZONE: ${TIME_ZONE}
+    networks:
+      - dbnet
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+
+#Создание сети dbnet внутри которой будут взаимодействовать сервисы
+networks:
+  dbnet:
+    driver: bridge
+
+#Создание тома, чтобы не терять данные Базы Данных
+volumes:
+  postgres_data:
