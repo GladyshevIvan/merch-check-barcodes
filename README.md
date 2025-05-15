@@ -124,7 +124,7 @@ If all checks pass, the receipt is added to the database.
    * Клонируйте репозиторий:
 
     ```bash
-    git clone https://github.com/GladyshevIvan/merch-check-barcodes.git
+    git clone https://gitflic.ru/project/vanoglady/merch-check-barcodes.git
     cd <имя_папки_проекта>
     ```
 
@@ -237,7 +237,7 @@ If all checks pass, the receipt is added to the database.
    * Clone the repository:
 
     ```bash
-    git clone https://github.com/GladyshevIvan/merch-check-barcodes.git
+    git clone https://gitflic.ru/project/vanoglady/merch-check-barcodes.git
     cd <project_folder_name>
     ```
 
@@ -292,7 +292,7 @@ If all checks pass, the receipt is added to the database.
    * Execute SQL queries to insert data. For example, to add store information:
 
         ```sql
-        INSERT INTO shops (id, shop_code, latitude, longitude) VALUES ('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3', '9999078900004658', 64.527603, 40.574157);
+        INSERT INTO shops VALUES ('F10F6CAF-5A98-426C-80D5-281A5D6FF0B3', '9999078900004658', 64.527603, 40.574157);
         ```
 
    * To check the contents of the `shops` table, use:
