@@ -124,7 +124,7 @@ If all checks pass, the receipt is added to the database.
    * Клонируйте репозиторий:
 
     ```bash
-    git clone https://github.com/GladyshevIvan/merch-check-barcodes.git
+    git clone https://gitflic.ru/project/vanoglady/merch-check-barcodes.git
     cd <имя_папки_проекта>
     ```
 
@@ -237,7 +237,7 @@ If all checks pass, the receipt is added to the database.
    * Clone the repository:
 
     ```bash
-    git clone https://github.com/GladyshevIvan/merch-check-barcodes.git
+    git clone https://gitflic.ru/project/vanoglady/merch-check-barcodes.git
     cd <project_folder_name>
     ```
 
