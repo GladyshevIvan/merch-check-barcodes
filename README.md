@@ -125,7 +125,7 @@ If all checks pass, the receipt is added to the database.
 
     ```bash
     git clone https://gitflic.ru/project/vanoglady/merch-check-barcodes.git
-    cd <имя_папки_проекта>
+    cd merch-check-barcodes
     ```
 
    * Запустите сборку образа с помощью Docker Compose:
@@ -238,7 +238,7 @@ If all checks pass, the receipt is added to the database.
 
     ```bash
     git clone https://gitflic.ru/project/vanoglady/merch-check-barcodes.git
-    cd <project_folder_name>
+    cd merch-check-barcodes
     ```
 
    * Build the image using Docker Compose:
