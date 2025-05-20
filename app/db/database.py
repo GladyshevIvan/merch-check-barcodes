@@ -4,7 +4,7 @@ from app.config import settings
 
 
 engine = create_async_engine(settings.ASYNC_DATABASE_URL)  #Создание асинхронного движка Базы Данных
-async_session_maker = async_sessionmaker(engine, class_=AsyncSession)  #Создание фабрики сессий для взаимодействия с базой данных
+async_session_maker = async_sessionmaker(engine, class_=AsyncSession)  #Создание фабрики сессий для взаимодействия с Базой Данных
 
 
 async def get_async_session():
